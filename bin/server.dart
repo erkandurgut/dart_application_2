@@ -1,0 +1,46 @@
+import 'dart:io';
+
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart';
+import 'package:shelf_router/shelf_router.dart';
+import 'package:postgresql2/postgresql.dart';
+
+// Configure routes.
+final _router = Router()
+  ..get('/', _rootHandler)
+  ..get('/echo/<message>', _echoHandler);
+
+Response _rootHandler(Request req) {
+    var uri = 'postgres://postgres:Deneme.123*@localhost:5432/DbYokIstatistik';
+  var sql = "select * from kod"; 
+  connect(uri).then((conn) {
+    conn.query(sql).toList()
+    	.then((result) {
+    		print('result: $result');
+    	})
+    	.whenComplete(() {
+    		conn.close();
+    	});
+  });
+  return Response.ok('Hello, World!\n');
+}
+
+Response _echoHandler(Request request) {
+  final message = request.params['message'];
+  return Response.ok('$message\n');
+}
+
+void main(List<String> args) async {
+  // Use any available host or container IP (usually `0.0.0.0`).
+  final ip = InternetAddress.anyIPv4;
+
+  // Configure a pipeline that logs requests.
+  final handler = Pipeline()
+      .addMiddleware(logRequests())
+      .addHandler(_router.call);
+
+  // For running in containers, we respect the PORT environment variable.
+  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final server = await serve(handler, ip, port);
+  print('Server listening on port ${server.port}');
+}
