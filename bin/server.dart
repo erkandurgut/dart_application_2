@@ -22,7 +22,7 @@ Response _rootHandler(Request req) {
     		conn.close();
     	});
   });
-  return Response.ok('Hello, World!!\n');
+  return Response.ok('Hello, World!\n');
 }
 
 Response _echoHandler(Request request) {
